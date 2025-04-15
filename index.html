@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscaminas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="main.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <h1>Buscaminas Arcade</h1>
+
+    <div class="configuracion">
+        <label for="tamañoTablero">Tamaño:</label>
+        <input type="number" id="tamañoTablero" value="10" min="5" max="25">
+        <label for="cantidadMinas">Minas:</label>
+        <input type="number" id="cantidadMinas" value="15" min="1" max="99">
+        <button onclick="iniciarJuego()">¡Jugar!</button>
+    </div>
+
+    <div id="tablero"></div>
+    <div id="mensaje"></div>
+
+    <script src="index.js"></script>
+</body>
+</html>
