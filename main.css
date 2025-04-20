@@ -128,7 +128,6 @@ h1 {
   background-color: #aab5b6;
 }
 
-
 .celda-revelada {
   background-color: #7f8c8d;
   /* Gris oscuro */
@@ -157,7 +156,6 @@ h1 {
     transform: scale(1);
   }
 }
-
 
 .bandera {
   /* background-color: transparent; */
@@ -220,56 +218,81 @@ h1 {
 /* Gris */
 
 #mensaje {
+  display: none;
   font-size: 1.5em;
-  /* Tamaño grande para el mensaje */
   font-weight: bold;
-  margin-top: 20px;
   color: #f1c40f;
-  /* Amarillo */
   text-align: center;
-  min-height: 30px;
-  /* Espacio reservado */
   text-shadow: 2px 2px #000;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  margin: 0;
+  background: rgba(0, 0, 0, 0.85);
+  padding: 20px 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+  border: 2px solid #f1c40f;
+  max-width: 90%;
+  width: auto;
+}
+
+#mensaje h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+}
+
+#mensaje ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  text-align: left;
+}
+
+#mensaje li {
+  margin-bottom: 8px;
 }
 
 .mensaje-ganador {
   color: #2ecc71;
   /* Verde para ganar */
-  animation: pulse 1s infinite;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 .mensaje-perdedor {
   color: #e74c3c;
   /* Rojo para perder */
-  animation: shake 0.5s;
+  animation: shake 0.8s ease-in-out;
 }
 
 @keyframes pulse {
   0% {
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
 
   50% {
-    transform: scale(1.1);
+    transform: translate(-50%, -50%) scale(1.1);
   }
 
   100% {
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
 @keyframes shake {
-
   0%,
   100% {
-    transform: translateX(0);
+    transform: translate(-50%, -50%) translateX(0);
   }
 
   25% {
-    transform: translateX(-5px);
+    transform: translate(-50%, -50%) translateX(-5px);
   }
 
   75% {
-    transform: translateX(5px);
+    transform: translate(-50%, -50%) translateX(5px);
   }
 }
