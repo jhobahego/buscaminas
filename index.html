@@ -18,7 +18,10 @@
         <input type="number" id="cantidadMinas" value="15" min="1" max="99">
         <button onclick="iniciarJuego()">¡Jugar!</button>
     </div>
-
+    <div class="estado-juego">
+        <div id="contador-banderas">Banderas: 🚩<span id="banderas-restantes">0</span>/<span id="minas-totales">0</span></div>
+        <div id="temporizador">Tiempo: ⏱️<span id="tiempo-transcurrido">0.000</span>s</div>
+    </div>
     <div id="tablero"></div>
     <div id="mensaje"></div>
 

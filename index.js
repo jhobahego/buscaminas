@@ -4,6 +4,9 @@ let cantidadMinasUsuario = 15; // Default number of mines
 let celdasCubiertas; // Counter for remaining covered cells
 let juegoTerminado = false; // Game state flag
 let banderasColocadas = 0; // Counter for flags placed
+let timerInterval; // Interval ID for the game timer
+let tiempoTranscurrido = 0; // Seconds elapsed
+let clicsIzquierdos = 0, clicsDerechos = 0; // Click counters
 
 const tableroElement = document.getElementById('tablero');
 const mensajeElement = document.getElementById('mensaje');
@@ -31,6 +34,20 @@ function iniciarJuego() {
   banderasColocadas = 0; // Reset flag counter
   mensajeElement.textContent = "";
   mensajeElement.className = ""; // Clear message styles
+  mensajeElement.style.display = 'none';
+
+  clearInterval(timerInterval); // Stop any previous timer
+  tiempoTranscurrido = 0;
+  clicsIzquierdos = 0;
+  clicsDerechos = 0;
+  document.getElementById('tiempo-transcurrido').textContent = Math.round(tiempoTranscurrido);
+  document.getElementById('minas-totales').textContent = cantidadMinasUsuario;
+  document.getElementById('banderas-restantes').textContent = banderasColocadas;
+  // Start new timer
+  timerInterval = setInterval(() => {
+    tiempoTranscurrido += 0.1;
+    document.getElementById('tiempo-transcurrido').textContent = Math.round(tiempoTranscurrido);
+  }, 100);
 
   // Create the internal board logic
   tablero = crearTablero(tamañoTableroUsuario, cantidadMinasUsuario);
@@ -111,7 +128,8 @@ function dibujarTablero() {
 
       // Left-click handler
       celdaElement.addEventListener('click', function (e) {
-        // Pass the cell element to revelarCelda
+        if (juegoTerminado) return;
+        clicsIzquierdos++;
         revelarCelda(fila, columna, celdaElement);
       });
 
@@ -119,6 +137,7 @@ function dibujarTablero() {
       celdaElement.addEventListener('contextmenu', function (e) {
         e.preventDefault(); // Prevent default context menu
         if (juegoTerminado || celdaElement.classList.contains('celda-revelada')) return; // Ignore on revealed or finished game
+        clicsDerechos++;
         marcarBandera(fila, columna, celdaElement);
       });
 
@@ -248,6 +267,7 @@ function marcarBandera(fila, columna, celdaElement) {
     celdaElement.innerHTML = '🚩'; // Use flag emoji
     banderasColocadas++;
   }
+  document.getElementById('banderas-restantes').textContent = banderasColocadas;
   // Optional: Update UI element showing flags placed vs mines total
   // console.log(`Banderas: ${banderasColocadas}/${cantidadMinasUsuario}`);
 }
@@ -265,16 +285,18 @@ function verificarVictoria() {
 
 function ganarJuego() {
   if (juegoTerminado) return; // Prevent running multiple times
-  mensajeElement.textContent = "¡Felicidades, has ganado!";
-  mensajeElement.className = 'mensaje-ganador'; // Add win style
   juegoTerminado = true;
-  mostrarMinasGanador(); // Show where mines were (optional)
+  clearInterval(timerInterval);
+  mostrarMinasGanador();
+  mostrarMensajeVictoria();
 }
 
 function perderJuego(celdaExplotada) {
   if (juegoTerminado) return; // Prevent running multiple times
+  clearInterval(timerInterval); // Stop the timer on loss
   mensajeElement.textContent = "¡BOOM! ¡Has perdido!";
   mensajeElement.className = 'mensaje-perdedor'; // Add lose style
+  mensajeElement.style.display = 'block';
   juegoTerminado = true;
   mostrarTodasMinas(celdaExplotada); // Reveal all mines
 }
@@ -338,6 +360,74 @@ function mostrarMinasGanador() {
   }
 }
 
+// Calculate 3BV: flood-fill zero regions and count isolated numbers
+function calcular3BV(board) {
+  const n = board.length;
+  const visited = new Set();
+  let bv = 0;
+  function floodZero(i, j) {
+    const stack = [[i, j]];
+    while (stack.length) {
+      const [x, y] = stack.pop();
+      const key = `${x}-${y}`;
+      if (visited.has(key)) continue;
+      visited.add(key);
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          const nx = x + dx, ny = y + dy;
+          if (nx >= 0 && nx < n && ny >= 0 && ny < n && board[nx][ny] === 0) {
+            const nk = `${nx}-${ny}`;
+            if (!visited.has(nk)) stack.push([nx, ny]);
+          }
+        }
+      }
+    }
+  }
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const val = board[i][j];
+      if (val === 0) {
+        const key = `${i}-${j}`;
+        if (!visited.has(key)) {
+          bv++;
+          floodZero(i, j);
+        }
+      } else if (typeof val === 'number' && val > 0) {
+        // Count numbers without adjacent zero
+        let hasZero = false;
+        for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+          const nx = i + dx, ny = j + dy;
+          if (nx >= 0 && nx < n && ny >= 0 && ny < n && board[nx][ny] === 0) {
+            hasZero = true;
+          }
+        }
+        if (!hasZero) bv++;
+      }
+    }
+  }
+  return bv;
+}
+
+function mostrarMensajeVictoria() {
+  const mensajeDiv = document.getElementById('mensaje');
+  mensajeDiv.className = 'mensaje-ganador';
+  mensajeDiv.style.display = 'block';
+  const tiempo = tiempoTranscurrido;
+  const tresBV = calcular3BV(tablero);
+  const tresBVs = (tresBV / tiempo).toFixed(4);
+  const totalClics = clicsIzquierdos + clicsDerechos;
+  const eficiencia = ((tresBV / totalClics) * 100).toFixed(0);
+  mensajeDiv.innerHTML = `
+    <h2>¡Felicidades! ¡Has ganado!</h2>
+    <ul>
+      <li>Tiempo: ${Math.round(tiempo)} seg</li>
+      <li>3BV: ${tresBV}</li>
+      <li>3BV/s: ${tresBVs}</li>
+      <li>Clics: ${clicsIzquierdos}+${clicsDerechos} (${totalClics})</li>
+      <li>Eficiencia: ${eficiencia}%</li>
+    </ul>
+  `;
+}
 
 // --- Initial Load ---
 // Start the game for the first time when the page loads
